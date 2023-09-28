@@ -117,7 +117,7 @@ function scanToSetDecorations(document: vscode.TextDocument) {
     // import { AddOutline, Add } from '@vicons/ionicons5'
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     const viconImportMatched =
-      /(import\s+\{((\s+)?\w+,?(\s+)?)+\}\s+from\s+'|"@(v|r|s|v2)icons\/)/.exec(
+      /(import\s+\{((\s+)?\w+,?(\s+)?)+\}\s+from\s+('|")@(v|r|s|v2)icons\/)/.exec(
         sourceCode
       )
 
