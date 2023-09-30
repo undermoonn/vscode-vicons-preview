@@ -14,7 +14,7 @@ export async function getXiconsBase64Image(
   }
   try {
     const res = await ofetch(
-      `https://cdn.jsdelivr.net/npm/@sicons/${subPackageName}@0.12.0/${iconName}.svg`
+      `https://www.unpkg.com/@sicons/${subPackageName}@latest/${iconName}.svg`
     )
     const svg = await res.text()
     const base64ImageUrl = svg64(svg)

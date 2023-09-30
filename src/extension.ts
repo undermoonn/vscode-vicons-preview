@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { throttle } from 'lodash'
+import { debounce } from 'perfect-debounce'
 
 import { getXiconsBase64Image } from './icon'
 import { makeDecorationRender } from './render'
@@ -12,11 +12,11 @@ type DecorationWithIconInfos = {
 }
 type DecorationReadyToCache = {
   editor: vscode.TextEditor
-  decroations: DecorationWithIconInfos[]
+  decorations: DecorationWithIconInfos[]
 }
 
-const throttledScanToSetDecorations = throttle(scanToSetDecorations, 300)
-const decorationSetCacheMap = new WeakMap<
+const debounceScanToSetDecorations = debounce(scanToSetDecorations, 300)
+const decorationSetCacheMap = new Map<
   vscode.TextEditor,
   Map<CacheKey, vscode.TextEditorDecorationType>
 >()
@@ -32,7 +32,7 @@ function initVisibleTextEditors() {
   vscode.window.visibleTextEditors
     .map((p) => p.document)
     .filter((p) => p != null)
-    .forEach((doc) => throttledScanToSetDecorations(doc))
+    .forEach((doc) => debounceScanToSetDecorations(doc))
 }
 
 // --------------------
@@ -42,13 +42,13 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
-      throttledScanToSetDecorations(e.document)
+      debounceScanToSetDecorations(e.document)
     })
   )
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((e) => {
       if (e) {
-        throttledScanToSetDecorations(e.document)
+        debounceScanToSetDecorations(e.document)
       }
     })
   )
@@ -101,52 +101,74 @@ function matchToGenergateDecorations(
 
   return {
     editor,
-    decroations
+    decorations: decroations
   }
 }
 
 function scanToSetDecorations(document: vscode.TextDocument) {
+  console.time('scanToSetDecorations')
   const queue: Array<DecorationReadyToCache> = []
 
   findEditorsForDocument(document).forEach((editor) => {
-    const sourceCode = editor.document.getText()
+    let sourceCode = editor.document.getText()
+    let shouldLoopToMatch = true
+    let index = 0
 
-    // TODO: match -> import AddOutline from '@vicons/ionicons5/AddOutline'
-    // TODO: match -> multiple import
+    while (shouldLoopToMatch) {
+      // import { AddOutline, Add } from '@vicons/ionicons5'
+      // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      const viconImportMatched =
+        /import((?!import)[\s\S])+(v|r|s|v2)icons[\w\/]+('|")/.exec(sourceCode)
 
-    // import { AddOutline, Add } from '@vicons/ionicons5'
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    const viconImportMatched =
-      /(import\s+\{((\s+)?\w+,?(\s+)?)+\}\s+from\s+('|")@(v|r|s|v2)icons\/)/.exec(
-        sourceCode
+      // import { AddOutline, Add } from '@vicons/ionicons5'
+      //                                  ^^^^^^^^^^^^^^^^^
+      const iconPackageName = /@(v|r|s|v2)icons\/\w+/.exec(sourceCode)?.[0]
+
+      // import { AddOutline, Add } from '@vicons/ionicons5'
+      //        ^^^^^^^^^^^^^^^^^^^
+      const viconNamesMatched = /\{((\s+)?\w+,?(\s+)?)+\}/.exec(
+        viconImportMatched?.[0] || ''
       )
 
-    // import { AddOutline, Add } from '@vicons/ionicons5'
-    //                                  ^^^^^^^^^^^^^^^^^
-    const iconPackageName = /@(v|r|s|v2)icons\/[A-Za-z1-9]+/.exec(
-      sourceCode
-    )?.[0]
-
-    // import { AddOutline, Add } from '@vicons/ionicons5'
-    //        ^^^^^^^^^^^^^^^^^^^
-    const viconNamesMatched = /\{((\s+)?\w+,?(\s+)?)+\}/.exec(
-      viconImportMatched?.[0] || ''
-    )
-
-    if (viconImportMatched && viconNamesMatched && iconPackageName) {
-      queue.push(
-        matchToGenergateDecorations(
-          editor,
-          viconNamesMatched[0],
-          viconImportMatched.index + viconNamesMatched.index,
-          iconPackageName
+      if (viconImportMatched && viconNamesMatched && iconPackageName) {
+        queue.push(
+          matchToGenergateDecorations(
+            editor,
+            viconNamesMatched[0],
+            index + viconImportMatched.index + viconNamesMatched.index,
+            iconPackageName
+          )
         )
-      )
+      }
+
+      if (viconImportMatched) {
+        sourceCode = sourceCode.slice(
+          viconImportMatched.index + viconImportMatched[0].length
+        )
+        index = index + viconImportMatched.index + viconImportMatched[0].length
+      } else {
+        shouldLoopToMatch = false
+      }
     }
   })
 
-  queue.forEach((readyToCache) => {
-    const { editor, decroations } = readyToCache
+  function mergeEditorInQueue(): DecorationReadyToCache[] {
+    const map = new Map<
+      DecorationReadyToCache['editor'],
+      DecorationReadyToCache['decorations']
+    >()
+    queue.forEach((item) => {
+      const decorations = [...(map.get(item.editor) || []), ...item.decorations]
+      map.set(item.editor, decorations)
+    })
+    return Array.from(map).map(([editor, decorations]) => ({
+      editor,
+      decorations
+    }))
+  }
+
+  mergeEditorInQueue().forEach((readyToCache) => {
+    const { editor, decorations: decroations } = readyToCache
     const newCacheMap = new Map<CacheKey, vscode.TextEditorDecorationType>()
     const oldCacheMap = decorationSetCacheMap.get(editor)
     decroations.forEach((item) => {
@@ -184,4 +206,6 @@ function scanToSetDecorations(document: vscode.TextDocument) {
     oldCacheMap?.clear()
     decorationSetCacheMap.set(editor, newCacheMap)
   })
+
+  console.timeEnd('scanToSetDecorations')
 }
