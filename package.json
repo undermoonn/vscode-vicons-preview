@@ -6,7 +6,7 @@
     "url": "https://github.com/undermoonn/vscode-xicons-preview"
   },
   "publisher": "under-moon",
-  "description": "Show xicons preview in import",
+  "description": "Show xicons preview when import",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.82.0"

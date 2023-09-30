@@ -2,6 +2,6 @@
 
 ## Features
 
-Show [xicons](https://github.com/07akioni/xicons) when import preview in import
+show [xicons](https://github.com/07akioni/xicons) preview when import
 
 ![feature X](./images/00.png)
