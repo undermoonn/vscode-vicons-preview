@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Fixed
+
+- decoration styles
+
 ## [1.0.0] - 2023.09.30
 
 ### Added

@@ -16,15 +16,16 @@ export function makeDecorationRender(
     before: {
       contentText: '',
       textDecoration: style({
-        width: '1.2em',
-        height: '1.4em',
+        width: '1rem',
+        height: '1rem',
         display: 'inline-block',
         backgroundImage: 'url(' + imageUrl + ')',
-        backgroundPosition: 'center 4px',
+        backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
-        backgroundSize: '1.2em',
-        marginRight: '4px',
-        opacity: '0.4'
+        backgroundSize: '1rem',
+        marginRight: '0.4rem',
+        opacity: '0.4',
+        verticalAlign: 'text-bottom'
       })
     }
   }

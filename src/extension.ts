@@ -16,7 +16,7 @@ type DecorationReadyToCache = {
 }
 
 const debounceScanToSetDecorations = debounce(scanToSetDecorations, 300)
-const decorationSetCacheMap = new Map<
+const decorationSetCacheMap = new WeakMap<
   vscode.TextEditor,
   Map<CacheKey, vscode.TextEditorDecorationType>
 >()
