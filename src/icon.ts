@@ -1,5 +1,7 @@
 import { svg64 } from 'svg64'
-import { ofetch } from 'ofetch'
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+
 const cache = new Map<string, string>()
 
 export async function getXiconsBase64Image(
@@ -13,10 +15,17 @@ export async function getXiconsBase64Image(
     return cachedBase64ImageUrl
   }
   try {
-    const res = await ofetch(
-      `https://www.unpkg.com/@sicons/${subPackageName}@latest/${iconName}.svg`
+    const svg = await readFile(
+      resolve(
+        __dirname,
+        '../node_modules/@sicons',
+        subPackageName,
+        iconName + '.svg'
+      ),
+      {
+        encoding: 'utf-8'
+      }
     )
-    const svg = await res.text()
     const base64ImageUrl = svg64(svg)
     cache.set(key, base64ImageUrl)
     return base64ImageUrl
