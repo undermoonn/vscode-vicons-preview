@@ -106,7 +106,7 @@ function matchToGenergateDecorations(
 }
 
 function scanToSetDecorations(document: vscode.TextDocument) {
-  console.time('scanToSetDecorations')
+  console.time('Scan code to async set icons preview')
   const queue: Array<DecorationReadyToCache> = []
 
   findEditorsForDocument(document).forEach((editor) => {
@@ -207,5 +207,5 @@ function scanToSetDecorations(document: vscode.TextDocument) {
     decorationSetCacheMap.set(editor, newCacheMap)
   })
 
-  console.timeEnd('scanToSetDecorations')
+  console.timeEnd('Scan code to async set icons preview')
 }
