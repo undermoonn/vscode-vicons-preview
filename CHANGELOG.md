@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.3.0] - 2024.02.11
+
+## Added
+
+- Load svg from cdn instead of locale files to reduce bundle size
+
 ## [1.0.2] - 2023.10.09
 
 ### Fixed
