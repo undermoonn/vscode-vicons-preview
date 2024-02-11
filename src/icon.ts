@@ -1,16 +1,16 @@
 import { svg64 } from 'svg64'
-
+import { getCdnBaseUrl, getXiconsVersion } from './configurable'
 type IconCdnUrl = string
 type IconBase64ImageUrl = string
 const cache = new Map<IconCdnUrl, IconBase64ImageUrl>()
-
-const CDN_BASE = 'https://unpkg.com/@sicons' // TODO: user configurable
-const ICON_VERSION = '0.12.0' // TODO: user configurable
 
 export async function getXiconsBase64Image(
   iconName: string,
   iconPackageName: string
 ): Promise<string> {
+  const CDN_BASE = getCdnBaseUrl()
+  const ICON_VERSION = getXiconsVersion()
+
   const [_, subPackageName] = iconPackageName.split('/')
 
   const iconCdnUrl = `${CDN_BASE}/${subPackageName}@${ICON_VERSION}/${iconName}.svg`
